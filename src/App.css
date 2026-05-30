@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@theme {
+  /* Design tokens - Obsidian & Orange Premium Theme */
+  --color-text: #f5f5f7;
+  --color-background: #09090b;
+  --color-background-ui: #ff6a00;
+  --color-logo-primary: #ff6a00;
+  --color-logo-stroke: #1a1613;
+  --color-text-stroke: #121110;
+  --color-mid-gray: #4b4b4d;
+}
+
+:root {
+  /* Typography */
+  font-size: 15px;
+  line-height: 24px;
+  font-weight: 400;
+
+  /* Typography settings */
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+
+  --scrollbar-thumb: color-mix(in srgb, var(--color-text), transparent 85%);
+  --scrollbar-thumb-hover: color-mix(
+    in srgb,
+    var(--color-text),
+    transparent 70%
+  );
+
+  /* Set variables directly on root so it is consistently premium black/orange */
+  --color-text: #f5f5f7;
+  --color-background: #09090b;
+  --color-background-ui: #ff6a00;
+  --color-logo-primary: #ff6a00;
+  --color-logo-stroke: #1a1613;
+  --color-text-stroke: #121110;
+  --color-mid-gray: #4b4b4d;
+
+  /* Apply colors */
+  color: var(--color-text);
+  background-color: var(--color-background);
+}
+
+/* macOS - tint native overlay scrollbar thumb */
+:root[data-platform="macos"] {
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+/* Custom Scrollbar - only on Windows/Linux; macOS uses native overlay scrollbars */
+:root:not([data-platform="macos"]) ::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+
+:root:not([data-platform="macos"]) ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+:root:not([data-platform="macos"]) ::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 20px;
+  border: 3px solid transparent;
+  border-right-width: 4px;
+  border-left-width: 3px;
+  background-clip: content-box;
+  min-height: 32px;
+}
+
+:root:not([data-platform="macos"]) ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
+}
+
+@layer utilities {
+  .text-stroke {
+    -webkit-text-stroke: 2px var(--color-text-stroke);
+  }
+}
+
+.logo-primary {
+  fill: var(--color-logo-primary);
+}
+
+.logo-stroke {
+  fill: var(--color-logo-stroke);
+  stroke: var(--color-logo-stroke);
+  stroke-width: 1;
+}
