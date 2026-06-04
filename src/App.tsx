@@ -12,11 +12,16 @@ import "./App.css";
 import AccessibilityPermissions from "./components/AccessibilityPermissions";
 import Footer from "./components/footer";
 import Onboarding, { AccessibilityOnboarding } from "./components/onboarding";
-import { Sidebar as GlassyDock, SidebarSection, SECTIONS_CONFIG } from "./components/GlassyDock";
+import {
+  Sidebar as GlassyDock,
+  SidebarSection,
+  SECTIONS_CONFIG,
+} from "./components/GlassyDock";
 import { useSettings } from "./hooks/useSettings";
 import { useSettingsStore } from "./stores/settingsStore";
 import { commands } from "@/bindings";
 import { getLanguageDirection, initializeRTL } from "@/lib/utils/rtl";
+import { DonationModal } from "./components/shared";
 
 type OnboardingStep = "accessibility" | "model" | "done";
 
@@ -31,6 +36,7 @@ function App() {
   const [onboardingStep, setOnboardingStep] = useState<OnboardingStep | null>(
     null,
   );
+  const [isDonationOpen, setIsDonationOpen] = useState(false);
   // Track if this is a returning user who just needs to grant permissions
   // (vs a new user who needs full onboarding including model selection)
   const [isReturningUser, setIsReturningUser] = useState(false);
@@ -45,6 +51,14 @@ function App() {
     (state) => state.refreshOutputDevices,
   );
   const hasCompletedPostOnboardingInit = useRef(false);
+
+  useEffect(() => {
+    const handleOpenDonation = () => setIsDonationOpen(true);
+    window.addEventListener("open-donation-modal", handleOpenDonation);
+    return () => {
+      window.removeEventListener("open-donation-modal", handleOpenDonation);
+    };
+  }, []);
 
   useEffect(() => {
     checkOnboardingStatus();
@@ -263,6 +277,10 @@ function App() {
             description: "text-mid-gray",
           },
         }}
+      />
+      <DonationModal
+        isOpen={isDonationOpen}
+        onClose={() => setIsDonationOpen(false)}
       />
       {/* Main content area that takes remaining space */}
       <div className="flex-1 flex overflow-hidden">

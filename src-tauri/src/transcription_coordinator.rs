@@ -49,6 +49,7 @@ impl TranscriptionCoordinator {
             let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 let mut stage = Stage::Idle;
                 let mut last_press: Option<Instant> = None;
+                let mut held_bindings = std::collections::HashSet::new();
 
                 while let Ok(cmd) = rx.recv() {
                     match cmd {
@@ -58,15 +59,21 @@ impl TranscriptionCoordinator {
                             is_pressed,
                             push_to_talk,
                         } => {
-                            // Debounce rapid-fire press events (key repeat / double-tap).
-                            // Releases always pass through for push-to-talk.
                             if is_pressed {
+                                if held_bindings.contains(&binding_id) {
+                                    debug!("Ignoring repeat press event for '{binding_id}'");
+                                    continue;
+                                }
+                                held_bindings.insert(binding_id.clone());
+
                                 let now = Instant::now();
                                 if last_press.map_or(false, |t| now.duration_since(t) < DEBOUNCE) {
                                     debug!("Debounced press for '{binding_id}'");
                                     continue;
                                 }
                                 last_press = Some(now);
+                            } else {
+                                held_bindings.remove(&binding_id);
                             }
 
                             if push_to_talk {
@@ -94,6 +101,7 @@ impl TranscriptionCoordinator {
                         Command::Cancel {
                             recording_was_active,
                         } => {
+                            held_bindings.clear();
                             // Don't reset during processing — wait for the pipeline to finish.
                             if !matches!(stage, Stage::Processing)
                                 && (recording_was_active || matches!(stage, Stage::Recording(_)))
@@ -102,6 +110,7 @@ impl TranscriptionCoordinator {
                             }
                         }
                         Command::ProcessingFinished => {
+                            held_bindings.clear();
                             stage = Stage::Idle;
                         }
                     }

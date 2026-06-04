@@ -382,6 +382,7 @@ pub fn run(cli_args: CliArgs) {
             commands::get_app_settings,
             commands::get_default_settings,
             commands::get_log_dir_path,
+            commands::get_privacy_diagnostics,
             commands::set_log_level,
             commands::open_recordings_folder,
             commands::open_log_dir,
@@ -427,7 +428,10 @@ pub fn run(cli_args: CliArgs) {
             commands::history::update_recording_retention_period,
             helpers::clamshell::is_laptop,
         ])
-        .events(collect_events![managers::history::HistoryUpdatePayload,]);
+        .events(collect_events![
+            managers::history::HistoryUpdatePayload,
+            shortcut::ShortcutDiagnosticPayload,
+        ]);
 
     #[cfg(debug_assertions)] // <- Only export on non-release builds
     specta_builder

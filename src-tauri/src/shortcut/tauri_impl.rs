@@ -4,7 +4,7 @@
 //! global-shortcut plugin.
 
 use log::{error, warn};
-use tauri::AppHandle;
+use tauri::{AppHandle, Emitter};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 
 #[cfg(not(target_os = "linux"))]
@@ -106,14 +106,45 @@ pub fn register_shortcut(app: &AppHandle, binding: ShortcutBinding) -> Result<()
     app.global_shortcut()
         .on_shortcut(shortcut, move |app_handle, scut, event| {
             if scut == &shortcut {
+                let start_time = std::time::Instant::now();
                 let shortcut_string = scut.into_string();
                 let is_pressed = event.state == ShortcutState::Pressed;
+
                 handle_shortcut_event(
                     app_handle,
                     &binding_id_for_closure,
                     &shortcut_string,
                     is_pressed,
                 );
+
+                let elapsed = start_time.elapsed().as_millis() as u64;
+
+                // Parse active modifiers
+                let parts: Vec<&str> = shortcut_string.split('+').map(|s| s.trim()).collect();
+                let mut active_modifiers = Vec::new();
+                for part in parts {
+                    let l = part.to_lowercase();
+                    if l == "ctrl" || l == "control" || l == "alt" || l == "option" || l == "shift" || l == "cmd" || l == "command" || l == "meta" || l == "super" || l == "win" {
+                        active_modifiers.push(l);
+                    }
+                }
+
+                log::info!(
+                    "[tauri-shortcut interceptor] state={:?}, modifiers={:?}, event_id={}, processing_time_ms={}ms",
+                    if is_pressed { "Down" } else { "Up" },
+                    active_modifiers,
+                    binding_id_for_closure,
+                    elapsed
+                );
+
+                let payload = super::ShortcutDiagnosticPayload {
+                    binding_id: binding_id_for_closure.clone(),
+                    hotkey_string: shortcut_string,
+                    is_pressed,
+                    active_modifiers,
+                    processing_time_ms: elapsed,
+                };
+                let _ = app_handle.emit("shortcut-diagnostic", &payload);
             }
         })
         .map_err(|e| {

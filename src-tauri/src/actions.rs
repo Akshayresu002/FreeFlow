@@ -38,6 +38,23 @@ impl Drop for FinishGuard {
     }
 }
 
+/// Drop guard that deletes a temporary WAV file when dropped.
+struct TempWavGuard {
+    path: std::path::PathBuf,
+    active: bool,
+}
+impl Drop for TempWavGuard {
+    fn drop(&mut self) {
+        if self.active && self.path.exists() {
+            if let Err(e) = std::fs::remove_file(&self.path) {
+                error!("Failed to delete temporary WAV file {:?}: {}", self.path, e);
+            } else {
+                debug!("Temporary WAV file deleted successfully: {:?}", self.path);
+            }
+        }
+    }
+}
+
 // Shortcut Action Trait
 pub trait ShortcutAction: Send + Sync {
     fn start(&self, app: &AppHandle, binding_id: &str, shortcut_str: &str);
@@ -536,7 +553,11 @@ impl ShortcutAction for TranscribeAction {
                     // Save WAV concurrently with transcription
                     let sample_count = samples.len();
                     let file_name = format!("handy-{}.wav", chrono::Utc::now().timestamp());
-                    let wav_path = hm.recordings_dir().join(&file_name);
+                    let wav_path = hm.temp_recordings_dir().join(&file_name);
+                    let _temp_wav_guard = TempWavGuard {
+                        path: wav_path.clone(),
+                        active: true,
+                    };
                     let wav_path_for_verify = wav_path.clone();
                     let samples_for_wav = samples.clone();
                     let wav_handle = tauri::async_runtime::spawn_blocking(move || {

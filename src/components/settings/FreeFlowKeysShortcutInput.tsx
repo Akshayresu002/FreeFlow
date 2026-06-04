@@ -23,7 +23,9 @@ interface FreeFlowKeysEvent {
   hotkey_string: string;
 }
 
-export const FreeFlowKeysShortcutInput: React.FC<FreeFlowKeysShortcutInputProps> = ({
+export const FreeFlowKeysShortcutInput: React.FC<
+  FreeFlowKeysShortcutInputProps
+> = ({
   descriptionMode = "tooltip",
   grouped = false,
   shortcutId,

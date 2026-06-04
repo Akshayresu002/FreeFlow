@@ -185,3 +185,39 @@ pub fn initialize_shortcuts(app: AppHandle) -> Result<(), String> {
     log::info!("Shortcuts initialized successfully");
     Ok(())
 }
+
+#[derive(serde::Serialize, specta::Type)]
+pub struct PrivacyDiagnostics {
+    pub temp_dir_exists: bool,
+    pub temp_dir_path: String,
+    pub file_count: usize,
+    pub orphaned_files_purged_at_startup: bool,
+}
+
+#[specta::specta]
+#[tauri::command]
+pub fn get_privacy_diagnostics(
+    _app: AppHandle,
+    history_manager: tauri::State<'_, std::sync::Arc<crate::managers::history::HistoryManager>>,
+) -> Result<PrivacyDiagnostics, String> {
+    let temp_dir = history_manager.temp_recordings_dir();
+    let temp_dir_exists = temp_dir.exists();
+    let temp_dir_path = temp_dir.to_string_lossy().to_string();
+
+    let mut file_count = 0;
+    if temp_dir_exists {
+        if let Ok(entries) = std::fs::read_dir(temp_dir) {
+            file_count = entries.flatten().filter(|e| e.path().is_file()).count();
+        }
+    }
+
+    let orphaned_files_purged_at_startup =
+        crate::managers::history::CLEANED_ORPHANED_FILES.load(std::sync::atomic::Ordering::Relaxed);
+
+    Ok(PrivacyDiagnostics {
+        temp_dir_exists,
+        temp_dir_path,
+        file_count,
+        orphaned_files_purged_at_startup,
+    })
+}

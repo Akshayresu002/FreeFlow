@@ -9,8 +9,8 @@
 //! The active implementation is determined by the `keyboard_implementation`
 //! setting and can be changed at runtime.
 
-mod handler;
 pub mod freeflow_keys;
+mod handler;
 mod tauri_impl;
 
 use log::{error, info, warn};
@@ -367,7 +367,9 @@ fn unregister_all_shortcuts(app: &AppHandle, implementation: KeyboardImplementat
 
         let result = match implementation {
             KeyboardImplementation::Tauri => tauri_impl::unregister_shortcut(app, binding),
-            KeyboardImplementation::FreeFlowKeys => freeflow_keys::unregister_shortcut(app, binding),
+            KeyboardImplementation::FreeFlowKeys => {
+                freeflow_keys::unregister_shortcut(app, binding)
+            }
         };
 
         if let Err(e) = result {
@@ -446,7 +448,10 @@ fn register_all_shortcuts_for_implementation(
 
 /// Initialize FreeFlowKeys if not already initialized, with rollback on failure
 fn initialize_handy_keys_with_rollback(app: &AppHandle) -> Result<bool, String> {
-    if app.try_state::<freeflow_keys::FreeFlowKeysState>().is_some() {
+    if app
+        .try_state::<freeflow_keys::FreeFlowKeysState>()
+        .is_some()
+    {
         return Ok(false); // Already initialized, caller should continue
     }
 
@@ -1154,4 +1159,13 @@ pub async fn get_available_accelerators() -> crate::managers::transcription::Ava
     tauri::async_runtime::spawn_blocking(crate::managers::transcription::get_available_accelerators)
         .await
         .expect("get_available_accelerators panicked")
+}
+
+#[derive(Clone, Serialize, Type, tauri_specta::Event)]
+pub struct ShortcutDiagnosticPayload {
+    pub binding_id: String,
+    pub hotkey_string: String,
+    pub is_pressed: bool,
+    pub active_modifiers: Vec<String>,
+    pub processing_time_ms: u64,
 }

@@ -1,6 +1,14 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Cog, FlaskConical, History, Info, Sparkles, Cpu } from "lucide-react";
+import {
+  Cog,
+  FlaskConical,
+  History,
+  Info,
+  Sparkles,
+  Cpu,
+  Heart,
+} from "lucide-react";
 import FreeFlowTextLogo from "./icons/FreeFlowTextLogo";
 import FreeFlowHand from "./icons/FreeFlowHand";
 import { useSettings } from "../hooks/useSettings";
@@ -95,7 +103,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <div className="flex flex-col w-40 h-full border-e border-mid-gray/20 items-center px-2">
       <FreeFlowTextLogo width={120} className="m-4" />
-      <div className="flex flex-col w-full items-center gap-1 pt-2 border-t border-mid-gray/20">
+      <div className="flex flex-col w-full items-center gap-1 pt-2 border-t border-mid-gray/20 flex-1 overflow-y-auto">
         {availableSections.map((section) => {
           const Icon = section.icon;
           const isActive = activeSection === section.id;
@@ -120,6 +128,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           );
         })}
+      </div>
+      <div className="w-full pb-4 pt-2 border-t border-mid-gray/20">
+        <button
+          onClick={() =>
+            window.dispatchEvent(new CustomEvent("open-donation-modal"))
+          }
+          className="flex gap-2 items-center p-2 w-full rounded-lg cursor-pointer transition-colors bg-logo-primary hover:bg-logo-primary/80 text-white font-medium text-sm justify-center"
+        >
+          <Heart width={16} height={16} className="shrink-0 fill-current" />
+          <span>{t("settings.about.supportDevelopment.button")}</span>
+        </button>
       </div>
     </div>
   );

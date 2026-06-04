@@ -1,6 +1,6 @@
 [package]
 name = "freeflow"
-version = "0.8.3"
+version = "1.5.0"
 description = "FreeFlow"
 authors = ["cjpais"]
 edition = "2021"

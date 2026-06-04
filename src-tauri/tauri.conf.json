@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "FreeFlow",
-  "version": "0.8.3",
+  "version": "1.5.0",
   "identifier": "com.freeflow.app",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -25,6 +25,7 @@
   },
   "bundle": {
     "active": true,
+    "publisher": "ReachMoreAI.online",
     "createUpdaterArtifacts": true,
     "targets": ["nsis"],
     "resources": ["resources/**/*"],

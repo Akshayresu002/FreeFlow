@@ -139,7 +139,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onModelSelected }) => {
       </div>
       {/* Subtle attribution signature at the bottom of onboarding */}
       <div className="text-center text-[10px] text-text/30 py-2 shrink-0 select-none">
-        Built by Akshay Resu
+        Built by ReachMoreAI.online
       </div>
     </div>
   );

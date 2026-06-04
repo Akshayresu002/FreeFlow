@@ -20,7 +20,7 @@ export const AboutSettings: React.FC = () => {
         setVersion(appVersion);
       } catch (error) {
         console.error("Failed to get app version:", error);
-        setVersion("0.1.2");
+        setVersion("1.5.0");
       }
     };
 
@@ -32,13 +32,18 @@ export const AboutSettings: React.FC = () => {
       <SettingsGroup title="About FreeFlow">
         <SettingContainer
           title="FreeFlow"
-          description="Open-source offline AI dictation."
+          description="Offline AI dictation."
           grouped={true}
           layout="stacked"
         >
           <div className="text-sm text-text/70 space-y-1 mt-1">
-            <p className="font-semibold text-logo-primary">Built by Akshay Resu.</p>
-            <p className="text-xs text-mid-gray">Contains modified open-source components licensed under the MIT License.</p>
+            <p className="font-semibold text-logo-primary">
+              Built by ReachMoreAI.online.
+            </p>
+            <p className="text-xs text-mid-gray">
+              Contains modified open-source components licensed under the MIT
+              License.
+            </p>
           </div>
         </SettingContainer>
       </SettingsGroup>
@@ -55,16 +60,18 @@ export const AboutSettings: React.FC = () => {
         </SettingContainer>
 
         <SettingContainer
-          title={t("settings.about.sourceCode.title")}
-          description={t("settings.about.sourceCode.description")}
+          title={t("settings.about.supportDevelopment.title")}
+          description={t("settings.about.supportDevelopment.description")}
           grouped={true}
         >
           <Button
-            variant="secondary"
+            variant="primary"
             size="md"
-            onClick={() => openUrl("https://github.com/Akshayresu002/FreeFlow")}
+            onClick={() =>
+              window.dispatchEvent(new CustomEvent("open-donation-modal"))
+            }
           >
-            {t("settings.about.sourceCode.button")}
+            {t("settings.about.supportDevelopment.button")}
           </Button>
         </SettingContainer>
 

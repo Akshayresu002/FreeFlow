@@ -14,7 +14,7 @@ const Footer: React.FC = () => {
         setVersion(appVersion);
       } catch (error) {
         console.error("Failed to get app version:", error);
-        setVersion("0.1.2");
+        setVersion("1.5.0");
       }
     };
 
@@ -30,7 +30,7 @@ const Footer: React.FC = () => {
 
         {/* Update Status */}
         <div className="flex items-center gap-1 text-[10px] text-text/40">
-          <span>Built by Akshay Resu</span>
+          <span>Built by ReachMoreAI.online</span>
           <span className="text-text/20">•</span>
           <UpdateChecker />
           <span className="text-text/20">•</span>

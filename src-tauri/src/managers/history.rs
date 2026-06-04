@@ -65,9 +65,13 @@ pub struct HistoryEntry {
     pub post_process_requested: bool,
 }
 
+pub static CLEANED_ORPHANED_FILES: std::sync::atomic::AtomicBool =
+    std::sync::atomic::AtomicBool::new(false);
+
 pub struct HistoryManager {
     app_handle: AppHandle,
     recordings_dir: PathBuf,
+    temp_recordings_dir: PathBuf,
     db_path: PathBuf,
 }
 
@@ -76,6 +80,7 @@ impl HistoryManager {
         // Create recordings directory in app data dir
         let app_data_dir = crate::portable::app_data_dir(app_handle)?;
         let recordings_dir = app_data_dir.join("recordings");
+        let temp_recordings_dir = app_data_dir.join("temp_recordings");
         let db_path = app_data_dir.join("history.db");
 
         // Ensure recordings directory exists
@@ -84,9 +89,47 @@ impl HistoryManager {
             debug!("Created recordings directory: {:?}", recordings_dir);
         }
 
+        // Ensure temp recordings directory exists
+        if !temp_recordings_dir.exists() {
+            fs::create_dir_all(&temp_recordings_dir)?;
+            debug!(
+                "Created temp recordings directory: {:?}",
+                temp_recordings_dir
+            );
+            CLEANED_ORPHANED_FILES.store(true, std::sync::atomic::Ordering::Relaxed);
+        } else {
+            // Identify and purge any orphaned temporary recording files left behind by previous crashes.
+            match fs::read_dir(&temp_recordings_dir) {
+                Ok(entries) => {
+                    let mut count = 0;
+                    for entry in entries.flatten() {
+                        let path = entry.path();
+                        if path.is_file() {
+                            if let Err(e) = fs::remove_file(&path) {
+                                error!("Failed to delete orphaned temp file {:?}: {}", path, e);
+                            } else {
+                                count += 1;
+                            }
+                        }
+                    }
+                    if count > 0 {
+                        info!("Cleaned up {} orphaned temporary recording files", count);
+                    }
+                    CLEANED_ORPHANED_FILES.store(true, std::sync::atomic::Ordering::Relaxed);
+                }
+                Err(e) => {
+                    error!(
+                        "Failed to read temp recordings directory for startup cleanup: {}",
+                        e
+                    );
+                }
+            }
+        }
+
         let manager = Self {
             app_handle: app_handle.clone(),
             recordings_dir,
+            temp_recordings_dir,
             db_path,
         };
 
@@ -212,6 +255,10 @@ impl HistoryManager {
 
     pub fn recordings_dir(&self) -> &std::path::Path {
         &self.recordings_dir
+    }
+
+    pub fn temp_recordings_dir(&self) -> &std::path::Path {
+        &self.temp_recordings_dir
     }
 
     /// Save a new history entry to the database.

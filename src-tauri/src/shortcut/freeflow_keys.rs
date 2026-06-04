@@ -126,13 +126,49 @@ impl FreeFlowKeysState {
         loop {
             // Check for hotkey events (non-blocking)
             while let Some(event) = manager.try_recv() {
+                let start_time = std::time::Instant::now();
                 if let Some((binding_id, hotkey_string)) = hotkey_to_binding.get(&event.id) {
-                    debug!(
-                        "handy-keys event: binding={}, hotkey={}, state={:?}",
-                        binding_id, hotkey_string, event.state
-                    );
                     let is_pressed = event.state == HotkeyState::Pressed;
                     handle_shortcut_event(&app, binding_id, hotkey_string, is_pressed);
+
+                    let elapsed = start_time.elapsed().as_millis() as u64;
+
+                    // Parse active modifiers
+                    let parts: Vec<&str> = hotkey_string.split('+').map(|s| s.trim()).collect();
+                    let mut active_modifiers = Vec::new();
+                    for part in parts {
+                        let l = part.to_lowercase();
+                        if l == "ctrl"
+                            || l == "control"
+                            || l == "alt"
+                            || l == "option"
+                            || l == "shift"
+                            || l == "cmd"
+                            || l == "command"
+                            || l == "meta"
+                            || l == "super"
+                            || l == "win"
+                        {
+                            active_modifiers.push(l);
+                        }
+                    }
+
+                    log::info!(
+                        "[handy-keys interceptor] state={:?}, modifiers={:?}, event_id={}, processing_time_ms={}ms",
+                        if is_pressed { "Down" } else { "Up" },
+                        active_modifiers,
+                        binding_id,
+                        elapsed
+                    );
+
+                    let payload = super::ShortcutDiagnosticPayload {
+                        binding_id: binding_id.clone(),
+                        hotkey_string: hotkey_string.clone(),
+                        is_pressed,
+                        active_modifiers,
+                        processing_time_ms: elapsed,
+                    };
+                    let _ = app.emit("shortcut-diagnostic", &payload);
                 }
             }
 
